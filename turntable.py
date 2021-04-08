@@ -22,9 +22,47 @@ import time
 from mplayer import Player, Step
 from os import path, walk
 
+def main():
+    player = TurnTable()
+    if player.albums_list == ():
+        done = True
+    else:
+        player.play()
+        done = False
+    while not done:
+        command = input("Enter command: ")
+        if command == "minus":
+            player.minus()
+        elif command == "next":
+            player.next()
+        elif command == "play":
+            player.play()
+        elif command == "plus":
+            player.plus()
+        elif command == "skip":
+            player.skip()
+        elif command == "alb":
+            print(player.get_alb())
+        elif command == "art":
+            print(player.get_art())
+        elif command == "long":
+            print(player.get_long())
+        elif command == "name":
+            print(player.get_name())
+        elif command == "pos":
+            print(player.get_pos())
+        elif command == "time":
+            print(player.get_time())
+        elif command == "vol":
+            print(player.get_vol())
+        elif command == "quit":
+            done = True
+    return None
+
 class TurnTable():
     def __init__(self, username=""):
         ''' Initialize the player and album collection '''
+        # TODO: check if mplayer exists
         self.p = Player("-joystick -ao alsa")
         # generate the list of albums
         list = []
@@ -34,12 +72,16 @@ class TurnTable():
             for name in files:
                 if(name.endswith(".m3u")):
                     list.append(os.path.join(root, name))
-        print("Here is my album collection.")
+        print("Here is my album collection: ")
         for album in list:
             print(album)
         self.albums_list = tuple(list)
-        self.album = random.randint(0, len(list)-1)
-        print("I'm picking one at random: " + list[self.album])
+        if self.albums_list == ():
+            print("No album collection found")
+            print("Try putting some .m3u playlist files in " + home)
+        else:
+            self.album = random.randint(0, len(list)-1)
+            print("I'm picking one at random: " + list[self.album])
 
     def minus(self):
         self.p.volume = Step(-10)
@@ -109,3 +151,8 @@ class TurnTable():
     def get_vol(self):
         vol = int(self.p.volume or 0)
         return str(vol) + "%"
+
+
+if __name__ == "__main__":
+    main()
+    quit()
