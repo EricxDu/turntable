@@ -90,6 +90,8 @@ class TurnTable():
         ''' Start playing the next album '''
         self.album = (self.album + 1)%len(self.albums_list)
         self.p.loadlist(self.albums_list[self.album])
+        if self.p.paused:
+            self.p.pause()
 
     def play(self):
         ''' Initialize the slave and start playing '''
