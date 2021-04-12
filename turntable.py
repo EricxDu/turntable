@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 '''
 Copyright 2021 Eric Duhamel
 
@@ -20,7 +21,6 @@ import random
 import re
 import time
 from mplayer import Player, Step
-from os import path, walk
 
 def main():
     player = TurnTable()
@@ -67,8 +67,8 @@ class TurnTable():
         # generate the list of albums
         list = []
         homedir = "~" + username
-        home = path.expanduser(path.join(homedir, "Music"))
-        for root, dirs, files in walk(home):
+        home = os.path.expanduser(os.path.join(homedir, "Music"))
+        for root, dirs, files in os.walk(home):
             for name in files:
                 if(name.endswith(".m3u")):
                     list.append(os.path.join(root, name))
@@ -79,22 +79,21 @@ class TurnTable():
         if self.albums_list == ():
             print("No album collection found")
             print("Try putting some .m3u playlist files in " + home)
-        else:
-            self.album = random.randint(0, len(list)-1)
-            print("I'm picking one at random: " + list[self.album])
 
     def minus(self):
         self.p.volume = Step(-10)
 
     def next(self):
         ''' Start playing the next album '''
-        self.album = (self.album + 1)%len(self.albums_list)
+        self.album = random.randint(0, len(self.albums_list)-1)
         self.p.loadlist(self.albums_list[self.album])
         if self.p.paused:
             self.p.pause()
 
     def play(self):
         ''' Initialize the slave and start playing '''
+        print("Turntable: picking an album at random")
+        self.album = random.randint(0, len(self.albums_list)-1)
         self.p.loadlist(self.albums_list[self.album])
         self.p.pause()
 
@@ -103,7 +102,11 @@ class TurnTable():
 
     def skip(self):
         ''' Skip the current track '''
-        self.p.time_pos = self.p.length
+        if self.p.paused:
+            self.p.loadlist(self.albums_list[self.album])
+            self.p.pause()
+        else:
+            self.p.time_pos = self.p.length or 0
 
     def get_alb(self):
         fullname = self.p.filename or ""
