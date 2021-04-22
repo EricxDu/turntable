@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-'''
-Copyright 2021 Eric Duhamel
+'''Copyright 2021 Eric Duhamel
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -15,33 +14,23 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 '''
-
 import os
 import random
 import re
+import sys
 import time
-from mplayer import Player, Step
+from mplayer import Player
 
 def main():
-    player = TurnTable()
-    if player.albums_list == ():
-        done = True
-    else:
-        player.play()
-        done = False
+    print("invocation: " + sys.argv[0])
+    if len(sys.argv) > 1:
+        path = sys.argv[1]
+        print("turntable: searching " + path)
+    player = TurnTable(path)
+    done = False
     while not done:
         command = input("Enter command: ")
-        if command == "minus":
-            player.minus()
-        elif command == "next":
-            player.next()
-        elif command == "play":
-            player.play()
-        elif command == "plus":
-            player.plus()
-        elif command == "skip":
-            player.skip()
-        elif command == "alb":
+        if command == "alb":
             print(player.get_alb())
         elif command == "art":
             print(player.get_art())
@@ -49,64 +38,33 @@ def main():
             print(player.get_long())
         elif command == "name":
             print(player.get_name())
-        elif command == "pos":
-            print(player.get_pos())
+        elif command == "prog":
+            print(player.get_prog())
         elif command == "time":
             print(player.get_time())
         elif command == "vol":
             print(player.get_vol())
         elif command == "quit":
             done = True
-    return None
 
 class TurnTable():
-    def __init__(self, username=""):
+    def __init__(self, dirname):
         ''' Initialize the player and album collection '''
-        # TODO: check if mplayer exists
-        self.p = Player("-joystick -ao alsa")
         # generate the list of albums
         list = []
-        homedir = "~" + username
-        home = os.path.expanduser(os.path.join(homedir, "Music"))
-        for root, dirs, files in os.walk(home):
-            for name in files:
-                if(name.endswith(".m3u")):
-                    list.append(os.path.join(root, name))
+        for name in os.listdir(dirname):
+            if(name.endswith(".m3u")):
+                list.append(os.path.join(dirname, name))
         print("Here is my album collection: ")
-        for album in list:
-            print(album)
-        self.albums_list = tuple(list)
-        if self.albums_list == ():
+        for path in list:
+            print(path)
+        if len(list) < 1:
             print("No album collection found")
-            print("Try putting some .m3u playlist files in " + home)
-
-    def minus(self):
-        self.p.volume = Step(-10)
-
-    def next(self):
-        ''' Start playing the next album '''
-        self.album = random.randint(0, len(self.albums_list)-1)
-        self.p.loadlist(self.albums_list[self.album])
-        if self.p.paused:
-            self.p.pause()
-
-    def play(self):
-        ''' Initialize the slave and start playing '''
-        print("Turntable: picking an album at random")
-        self.album = random.randint(0, len(self.albums_list)-1)
-        self.p.loadlist(self.albums_list[self.album])
-        self.p.pause()
-
-    def plus(self):
-        self.p.volume = Step(10)
-
-    def skip(self):
-        ''' Skip the current track '''
-        if self.p.paused:
-            self.p.loadlist(self.albums_list[self.album])
-            self.p.pause()
+            print("Try putting some .m3u playlist files in " + dirname)
         else:
-            self.p.time_pos = self.p.length or 0
+            # TODO: check if mplayer exists
+            path = random.choice(list)
+            self.p = Player("-joystick -loop 0 -playlist " + path)
 
     def get_alb(self):
         fullname = self.p.filename or ""
@@ -133,7 +91,7 @@ class TurnTable():
         name = " ".join(names)
         return name
 
-    def get_pos(self, length=10, prog=":", bars="-"):
+    def get_prog(self, length=10, prog=":", bars="-"):
         perc = self.p.percent_pos or 0
         factor = 100/length
         pos = int(perc/factor)
@@ -159,5 +117,5 @@ class TurnTable():
 
 
 if __name__ == "__main__":
-    main()
-    quit()
+    try: main()
+    except: sys.exit()
