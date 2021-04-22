@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''Copyright 2021 Eric Duhamel
+"""Copyright 2021 Eric Duhamel
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-'''
+"""
 import os
 import random
 import re
@@ -22,80 +22,121 @@ import time
 from mplayer import Player
 
 def main():
-    print("invocation: " + sys.argv[0])
+    print('invocation: ' + sys.argv[0])
     if len(sys.argv) > 1:
-        path = sys.argv[1]
-        print("turntable: searching " + path)
-    player = TurnTable(path)
+        player = TurnTable(sys.argv)
+    else:
+        player = TurnTable()
     done = False
     while not done:
-        command = input("Enter command: ")
-        if command == "alb":
+        command = input('Enter command: ')
+        if command == 'alb':
             print(player.get_alb())
-        elif command == "art":
+        elif command == 'art':
             print(player.get_art())
-        elif command == "long":
+        elif command == 'long':
             print(player.get_long())
-        elif command == "name":
+        elif command == 'name':
             print(player.get_name())
-        elif command == "prog":
+        elif command == 'prog':
             print(player.get_prog())
-        elif command == "time":
+        elif command == 'skip':
+            print(player.skip())
+        elif command == 'sort':
+            print(player.get_sort())
+        elif command == 'time':
             print(player.get_time())
-        elif command == "vol":
+        elif command == 'vol':
             print(player.get_vol())
-        elif command == "quit":
+        elif command == 'quit':
             done = True
 
+
 class TurnTable():
-    def __init__(self, dirname):
-        ''' Initialize the player and album collection '''
+    def __init__(self, dirname='~/Music'):
+        """ Initialize the player and album collection """
         # generate the list of albums
+        dirname = os.path.expanduser(dirname)
+        print('turntable: searching ' + dirname)
         list = []
         for name in os.listdir(dirname):
-            if(name.endswith(".m3u")):
+            if(name.endswith('.m3u')):
                 list.append(os.path.join(dirname, name))
-        print("Here is my album collection: ")
+        print('turntable: here is your album collection ')
         for path in list:
             print(path)
         if len(list) < 1:
-            print("No album collection found")
-            print("Try putting some .m3u playlist files in " + dirname)
+            print('turntable: no album collection found')
+            print('turntable: try putting some .m3u playlist files in '
+                  + dirname)
         else:
             # TODO: check if mplayer exists
+            print('turntable: picking a random album... ')
             path = random.choice(list)
-            self.p = Player("-joystick -loop 0 -playlist " + path)
+            print('turntable: playing ' + path)
+            self.p = Player('-joystick -loop 0 -playlist ' + path)
 
     def get_alb(self):
-        fullname = self.p.filename or ""
-        filename = fullname.split(".")[0]
-        credits = filename.split("-")[0]
-        names = re.split("_",credits)
-        name = names[0]
+        path = self.p.path or ''
+        name = os.path.basename(os.path.dirname(path))
         return name
 
     def get_art(self):
-        fullname = self.p.filename or ""
-        filename = fullname.split(".")[0]
-        credits = filename.split("-")[0]
-        names = re.split("_",credits)
-        names.pop(0)
-        name = " ".join(names)
+        """Return artist name from filename
+
+        Assume name starts at the second string in the split and ends
+        after the splitting character changes.
+        """
+        name = os.path.splitext(self.p.filename or '')[0]
+        separators = ' |-|\.|_'
+        name = re.split(separators, name, 1)[1]  # discard sorting string
+        # find the first and second separators in name
+        sep1 = re.findall(separators, name)[0]
+        research = ''.join(name.split(sep1))
+        sep2 = re.findall(separators, research)[0]
+        # artist name ends after second separator
+        name = name.split(sep2)[0]
+        name = ' '.join(re.split(separators, name))
         return name
 
     def get_name(self):
-        fullname = self.p.filename or ""
-        filename = fullname.split(".")[0]
-        names = re.split("-",filename)
-        names = re.split("_",names[len(names)-1])
-        name = " ".join(names)
+        """Return song name from filename
+
+        Assume name is separated by the same character in the last
+        parts of the filename.
+        """
+        name = os.path.splitext(self.p.filename or '')[0]
+        separators = ' |-|\.|_'
+        name = re.split(separators, name, 1)[1]  # discard sorting string
+        # find the last and prelast separators in name
+        sep1 = re.findall(separators, name)[-1]
+        research = ''.join(name.split(sep1))
+        sep2 = re.findall(separators, research)[-1]
+        # artist name starts after penultimate separator
+        name = name.split(sep1)[1]
+        name = ' '.join(re.split(separators, name))
         return name
 
-    def get_prog(self, length=10, prog=":", bars="-"):
+    def get_sort(self):
+        """Return sorting string from filename
+
+        Assume the first string in the split is the sort.
+        """
+        name = os.path.splitext(self.p.filename or '')[0]
+        separators = ' |-|\.|_'
+        sort = re.split(separators, name)[0]
+        return sort
+
+    def get_prog(self, length=10, prog=':', bars='-'):
+        """Return a progress bar
+
+        Format the bar as a string with each character representing
+        ten percent of progress, unless otherwise specified.
+        """
         perc = self.p.percent_pos or 0
         factor = 100/length
         pos = int(perc/factor)
-        slider = ""
+        slider = ''
         for x in range(length):
             if pos == x:
                 slider += prog
@@ -104,18 +145,28 @@ class TurnTable():
         return slider
 
     def get_time(self):
+        """Return song playing time and total time
+
+        Format as two m-s indicators separated by a slash for 'current
+        time out of playtime'.
+        """
         time_pos = int(self.p.time_pos or 0)
-        time = str(int(time_pos/60)) + "m" + str(int(time_pos%60)) + "s"
+        time = str(int(time_pos/60)) + 'm' + str(int(time_pos%60)) + 's'
         length = self.p.length or 0
-        long = str(int(length/60)) + "m" + str(int(length%60)) + "s"
-        time = time + " / " + long
+        long = str(int(length/60)) + 'm' + str(int(length%60)) + 's'
+        time = time + ' / ' + long
         return time
 
     def get_vol(self):
+        """Return system volume as a percentage."""
         vol = int(self.p.volume or 0)
-        return str(vol) + "%"
+        return str(vol) + '%'
+
+    def skip(self):
+        """Skip to end of current track."""
+        self.p.time_pos = self.p.length or 0
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     try: main()
     except: sys.exit()
