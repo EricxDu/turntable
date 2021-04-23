@@ -32,7 +32,8 @@ class StringsTestCase(unittest.TestCase):
                 filename = filename[:ran] + sep + filename[ran:]
             self.o.p.filename = filename
             name = os.path.splitext(filename)[0]
-            expect = ''.join(re.split(' |-|\.|_', name))
+            expect = ''.join(re.split(' |-|_', name))
+            expect = ''.join(re.split(' |-|_', name))
             print("string " + str(i) + ": " + name)
             results = (self.o.get_sort(),
                        self.o.get_art(),

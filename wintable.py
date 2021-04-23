@@ -1,9 +1,12 @@
+import sys
 import time
 import tkinter as tk
 
 import turntable
 
-player = turntable.TurnTable()
+path = len(sys.argv) > 1 and sys.argv[1] or '~/Music'
+
+player = turntable.TurnTable(path)
 
 def skip_track(event):
     player.skip()
@@ -33,5 +36,9 @@ def main():
     prog.config(text=player.get_prog(50))
     play.after(100, main)
 
-main()
-play.mainloop()
+if player.albums != None:
+    player.play()
+    main()
+    play.mainloop()
+else:
+    sys.exit()

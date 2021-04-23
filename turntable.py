@@ -23,19 +23,18 @@ from mplayer import Player
 
 def main():
     print('invocation: ' + sys.argv[0])
-    if len(sys.argv) > 1:
-        player = TurnTable(sys.argv)
-    else:
-        player = TurnTable()
+    if len(sys.argv) > 1: player = TurnTable(sys.argv[1])
+    else: player = TurnTable()
     done = False
-    while not done:
+    while not done and player.albums != None:
+        print('commands: alb art name play prog skip sort time vol quit')
         command = input('Enter command: ')
         if command == 'alb': print(player.get_alb())
         elif command == 'art': print(player.get_art())
-        elif command == 'long': print(player.get_long())
         elif command == 'name': print(player.get_name())
+        elif command == 'play': player.play()
         elif command == 'prog': print(player.get_prog())
-        elif command == 'skip': print(player.skip())
+        elif command == 'skip': player.skip()
         elif command == 'sort': print(player.get_sort())
         elif command == 'time': print(player.get_time())
         elif command == 'vol': print(player.get_vol())
@@ -53,19 +52,28 @@ class TurnTable():
         for name in os.listdir(dirname):
             if(name.endswith('.m3u')):
                 list.append(os.path.join(dirname, name))
-        print('turntable: here is your album collection ')
-        for path in list:
-            print(path)
-        if len(list) < 1:
-            print('turntable: no album collection found')
+        if len(list) > 0:
+            print('turntable: here is your music collection ')
+            for path in list: print(path)
+            self.albums = list
+        else:
+            print('turntable: no music found')
             print('turntable: try putting some .m3u playlist files in '
                   + dirname)
-        else:
-            # TODO: check if mplayer exists
+            self.albums = None
+        self.p = None
+
+    def play(self):
+        if self.albums != None:
             print('turntable: picking a random album... ')
-            path = random.choice(list)
-            print('turntable: playing ' + path)
-            self.p = Player('-nolirc -joystick -loop 0 -playlist ' + path)
+            playlist = random.choice(self.albums)
+            print('turntable: playing ' + playlist)
+            if self.p != None: del self.p
+            self.p = Player('-nolirc -joystick -loop 0 -playlist ' + playlist)
+        else:
+            print('turntable: no album collection found')
+            print('turntable: try putting some .m3u playlist files')
+            print('turntable: in a folder then restart turntable')
 
     def get_alb(self):
         path = self.p.path or ''
@@ -116,7 +124,7 @@ class TurnTable():
         sort = len(sort) > 0 and sort.pop() or ''
         names = {'sort': sort, 'art': art, 'name': name}
         for n in names:
-            names[n] = ' '.join(names[n].split('-'))
+            names[n] = ' '.join(re.split('-|_', names[n]))
         return names
 
     def get_time(self):

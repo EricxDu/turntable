@@ -9,8 +9,9 @@ Turntable requires mplayer.py and mplayer
 * $ pkcon install mplayer
 
 Turntable is designed to return useful info for you to display using
-whichever graphics module you prefer. Test modules demonstrating
-Turntable's capabilities require Tkinter.
+whichever graphics module you prefer, and running the main module
+directly only supports a simple command-line interface. Using the
+GUI frontend Wintable requires Tkinter.
 
 * $ pip install tk
 
@@ -21,6 +22,8 @@ Alternatively you can point it at any folder and it will search there.
 
 * $ python3 turntable.py
 * $ python3 turntable.py mymusicfolder
+* $ python3 wintable.py
+* $ python3 wintable.py mymusicfolder
 
 ## Notes
 At present Turntable parses track name and artist information from the
