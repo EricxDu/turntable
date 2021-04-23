@@ -88,15 +88,15 @@ class TurnTable():
         after the splitting character changes.
         """
         name = os.path.splitext(self.p.filename or '')[0]
-        separators = ' |-|\.|_'
-        name = re.split(separators, name, 1)[1]  # discard sorting string
+        seps = ' |-|\.|_'
         # find the first and second separators in name
-        sep1 = re.findall(separators, name)[0]
-        research = ''.join(name.split(sep1))
-        sep2 = re.findall(separators, research)[0]
+        sep = len(re.split(seps, name)) > 1 and re.findall(seps, name)[0] or ''
+        rname = ''.join(name.split(sep))
+        sep = len(re.split(seps, rname)) > 1 and re.findall(seps, rname)[0] or sep
         # artist name ends after second separator
-        name = name.split(sep2)[0]
-        name = ' '.join(re.split(separators, name))
+        name = name.split(sep)[0]
+        name = re.split(seps, name, 1).pop()  # discard sorting string
+        name = ' '.join(re.split(seps, name))  # replace spaces
         return name
 
     def get_name(self):
@@ -106,15 +106,14 @@ class TurnTable():
         parts of the filename.
         """
         name = os.path.splitext(self.p.filename or '')[0]
-        separators = ' |-|\.|_'
-        name = re.split(separators, name, 1)[1]  # discard sorting string
+        seps = ' |-|\.|_'
         # find the last and prelast separators in name
-        sep1 = re.findall(separators, name)[-1]
-        research = ''.join(name.split(sep1))
-        sep2 = re.findall(separators, research)[-1]
+        sep = len(re.split(seps, name)) > 1 and re.findall(seps, name)[0] or ''
+        rname = ''.join(name.split(sep))
+        sep = len(re.split(seps, rname)) > 1 and re.findall(seps, rname)[0] or sep
         # artist name starts after penultimate separator
-        name = name.split(sep1)[1]
-        name = ' '.join(re.split(separators, name))
+        name = name.split(sep, 1).pop()
+        name = ' '.join(re.split(seps, name))  # replace spaces
         return name
 
     def get_sort(self):
@@ -123,8 +122,8 @@ class TurnTable():
         Assume the first string in the split is the sort.
         """
         name = os.path.splitext(self.p.filename or '')[0]
-        separators = ' |-|\.|_'
-        sort = re.split(separators, name)[0]
+        sep = ' |-|\.|_'
+        sort = re.split(sep, name)[0]
         return sort
 
     def get_prog(self, length=10, prog=':', bars='-'):
