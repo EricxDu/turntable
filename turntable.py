@@ -69,64 +69,15 @@ class TurnTable():
 
     def get_alb(self):
         path = self.p.path or ''
-        name = os.path.basename(os.path.dirname(path))
-        return name
+        return os.path.basename(os.path.dirname(path))
 
     def get_art(self):
-        """Return artist name from filename
-
-        Assume name starts at the second string in the split and ends
-        after the splitting character changes.
-        """
-        name = os.path.splitext(self.p.filename or '')[0]
-        splits = ' |-|\.|_'
-        # find the first and second separator characters
-        slice = re.findall(splits, name)
-        slice = sorted(set(slice), key=slice.index)
-        # artist name ends after second separator
-        if len(slice) > 1:
-            name = name.split(slice[1])[0]
-            name = re.split(splits, name, 1).pop()
-        elif len(slice) > 0: name = name.split(slice[0])[0]
-        else: name = ''
-        name = ' '.join(re.split(splits, name))  # replace spaces
-        return name
+        """Return artist name from filename."""
+        return self.get_substrings()['art']
 
     def get_name(self):
-        """Return song name from filename
-
-        Assume name is separated by the same character in the last
-        parts of the filename.
-        """
-        name = os.path.splitext(self.p.filename or '')[0]
-        splits = ' |-|\.|_'
-        # find the first and second separator characters
-        slice = re.findall(splits, name)
-        slice = sorted(set(slice), key=slice.index)
-        # artist name starts after penultimate separator
-        if len(slice) > 1: name = name.split(slice[1], 1).pop()
-        elif len(slice) > 0: name = name.split(slice[0], 1).pop()
-        else: name = name
-        name = ' '.join(re.split(splits, name))  # replace spaces
-        return name
-
-    def get_sort(self):
-        """Return sorting string from filename
-
-        Assume the first string in the split is the sort.
-        """
-        name = os.path.splitext(self.p.filename or '')[0]
-        splits = ' |-|\.|_'
-        # find the first and second separator characters
-        slice = re.findall(splits, name)
-        slice = sorted(set(slice), key=slice.index)
-        # sort string is probably before the first separator
-        if len(slice) > 1:
-            sort = name.split(slice[1])[0]
-            sort = sort.split(slice[0])[0]
-        elif len(slice) > 0: sort = ''
-        else: sort = ''
-        return sort
+        """Return song name from filename."""
+        return self.get_substrings()['name']
 
     def get_prog(self, length=10, prog=':', bars='-'):
         """Return a progress bar
@@ -144,6 +95,29 @@ class TurnTable():
             else:
                 slider += bars
         return slider
+
+    def get_sort(self):
+        """Return sorting string from filename."""
+        return self.get_substrings()['sort']
+
+    def get_substrings(self):
+        """Split filename into three strings
+
+        Assume everything to the left of first _ is 'sort' string and
+        everything to the right of last - is song 'name'. The rest of
+        the filename is 'art'ist name. If all else fails, 'sort' and
+        'art' can be empty strings. These strings never overlap."""
+        filename = os.path.splitext(self.p.filename or '')[0]
+        #sep1, sep2 = filename.find('_'), filename.rfind('-')
+        sort = filename.split('_', 1)
+        art = sort.pop().split('-', 1)
+        name = art.pop()
+        art = len(art) > 0 and art.pop() or ''
+        sort = len(sort) > 0 and sort.pop() or ''
+        names = {'sort': sort, 'art': art, 'name': name}
+        for n in names:
+            names[n] = ' '.join(names[n].split('-'))
+        return names
 
     def get_time(self):
         """Return song playing time and total time

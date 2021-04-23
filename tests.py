@@ -23,22 +23,21 @@ class StringsTestCase(unittest.TestCase):
         self.o = TestTable()
 
     def test_strings(self):
-        for i in range(100):
-            print("test: " + str(i))
+        for i in range(1000):
             filename = (''.join(choice(string.ascii_letters)
-                        for _ in range(randint(1, 60))))
-            for _ in range(randint(2, 20)):
-                sep = choice((' ', '-', '.', '_'))
+                        for _ in range(randint(1, 50))))
+            for _ in range(randint(2, 10)):
+                sep = choice(('-', '_'))
                 ran = randint(1, len(filename))
                 filename = filename[:ran] + sep + filename[ran:]
             self.o.p.filename = filename
             name = os.path.splitext(filename)[0]
             expect = ''.join(re.split(' |-|\.|_', name))
+            print("string " + str(i) + ": " + name)
             results = (self.o.get_sort(),
                        self.o.get_art(),
                        self.o.get_name())
             compare = ''.join(''.join(results).split())
-            print("parse string: " + name)
             print("expect: " + expect)
             print("result: " + compare)
             self.assertEqual(expect, compare)
