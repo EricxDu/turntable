@@ -30,24 +30,15 @@ def main():
     done = False
     while not done:
         command = input('Enter command: ')
-        if command == 'alb':
-            print(player.get_alb())
-        elif command == 'art':
-            print(player.get_art())
-        elif command == 'long':
-            print(player.get_long())
-        elif command == 'name':
-            print(player.get_name())
-        elif command == 'prog':
-            print(player.get_prog())
-        elif command == 'skip':
-            print(player.skip())
-        elif command == 'sort':
-            print(player.get_sort())
-        elif command == 'time':
-            print(player.get_time())
-        elif command == 'vol':
-            print(player.get_vol())
+        if command == 'alb': print(player.get_alb())
+        elif command == 'art': print(player.get_art())
+        elif command == 'long': print(player.get_long())
+        elif command == 'name': print(player.get_name())
+        elif command == 'prog': print(player.get_prog())
+        elif command == 'skip': print(player.skip())
+        elif command == 'sort': print(player.get_sort())
+        elif command == 'time': print(player.get_time())
+        elif command == 'vol': print(player.get_vol())
         elif command == 'quit':
             done = True
 
@@ -74,7 +65,7 @@ class TurnTable():
             print('turntable: picking a random album... ')
             path = random.choice(list)
             print('turntable: playing ' + path)
-            self.p = Player('-joystick -loop 0 -playlist ' + path)
+            self.p = Player('-nolirc -joystick -loop 0 -playlist ' + path)
 
     def get_alb(self):
         path = self.p.path or ''
@@ -88,15 +79,17 @@ class TurnTable():
         after the splitting character changes.
         """
         name = os.path.splitext(self.p.filename or '')[0]
-        seps = ' |-|\.|_'
-        # find the first and second separators in name
-        sep = len(re.split(seps, name)) > 1 and re.findall(seps, name)[0] or ''
-        rname = ''.join(name.split(sep))
-        sep = len(re.split(seps, rname)) > 1 and re.findall(seps, rname)[0] or sep
+        splits = ' |-|\.|_'
+        # find the first and second separator characters
+        slice = re.findall(splits, name)
+        slice = sorted(set(slice), key=slice.index)
         # artist name ends after second separator
-        name = name.split(sep)[0]
-        name = re.split(seps, name, 1).pop()  # discard sorting string
-        name = ' '.join(re.split(seps, name))  # replace spaces
+        if len(slice) > 1:
+            name = name.split(slice[1])[0]
+            name = re.split(splits, name, 1).pop()
+        elif len(slice) > 0: name = name.split(slice[0])[0]
+        else: name = ''
+        name = ' '.join(re.split(splits, name))  # replace spaces
         return name
 
     def get_name(self):
@@ -106,14 +99,15 @@ class TurnTable():
         parts of the filename.
         """
         name = os.path.splitext(self.p.filename or '')[0]
-        seps = ' |-|\.|_'
-        # find the last and prelast separators in name
-        sep = len(re.split(seps, name)) > 1 and re.findall(seps, name)[0] or ''
-        rname = ''.join(name.split(sep))
-        sep = len(re.split(seps, rname)) > 1 and re.findall(seps, rname)[0] or sep
+        splits = ' |-|\.|_'
+        # find the first and second separator characters
+        slice = re.findall(splits, name)
+        slice = sorted(set(slice), key=slice.index)
         # artist name starts after penultimate separator
-        name = name.split(sep, 1).pop()
-        name = ' '.join(re.split(seps, name))  # replace spaces
+        if len(slice) > 1: name = name.split(slice[1], 1).pop()
+        elif len(slice) > 0: name = name.split(slice[0], 1).pop()
+        else: name = name
+        name = ' '.join(re.split(splits, name))  # replace spaces
         return name
 
     def get_sort(self):
@@ -122,8 +116,16 @@ class TurnTable():
         Assume the first string in the split is the sort.
         """
         name = os.path.splitext(self.p.filename or '')[0]
-        sep = ' |-|\.|_'
-        sort = re.split(sep, name)[0]
+        splits = ' |-|\.|_'
+        # find the first and second separator characters
+        slice = re.findall(splits, name)
+        slice = sorted(set(slice), key=slice.index)
+        # sort string is probably before the first separator
+        if len(slice) > 1:
+            sort = name.split(slice[1])[0]
+            sort = sort.split(slice[0])[0]
+        elif len(slice) > 0: sort = ''
+        else: sort = ''
         return sort
 
     def get_prog(self, length=10, prog=':', bars='-'):
