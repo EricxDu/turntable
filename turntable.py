@@ -117,9 +117,8 @@ class TurnTable():
         the filename is 'art'ist name. If all else fails, 'sort' and
         'art' can be empty strings. These strings never overlap."""
         filename = os.path.splitext(self.p.filename or '')[0]
-        #sep1, sep2 = filename.find('_'), filename.rfind('-')
-        sort = filename.split('_', 1)
-        art = sort.pop().split('-', 1)
+        sort = re.split('[ \-_]+', filename, 1)
+        art = re.split(' *- *', sort.pop(), 1)
         name = art.pop()
         art = len(art) > 0 and art.pop() or ''
         sort = len(sort) > 0 and sort.pop() or ''

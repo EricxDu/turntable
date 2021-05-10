@@ -1,0 +1,2 @@
+mplayer.py==0.7.2.post1
+tk==0.1.0
