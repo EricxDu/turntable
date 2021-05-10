@@ -19,6 +19,7 @@ import random
 import re
 import sys
 import time
+
 from mplayer import Player
 
 def main():
@@ -61,7 +62,7 @@ class TurnTable():
             print('turntable: try putting some .m3u playlist files in '
                   + dirname)
             self.albums = None
-        self.p = None
+        self.p = Player()
 
     def play(self):
         if self.albums != None:
