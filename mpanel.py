@@ -23,7 +23,13 @@ import time
 from mplayer import Player
 
 def main():
-    player = TurnTable()
+    """Instantiate the class and provide a user interface.
+
+    This is a basic reference implementation for a process control
+    class. It demonstrates how to use the class below to create a
+    basic user interface.
+    """
+    player = Main()
     command = ''
     while not command == "quit":
         for info in player.inflist:
@@ -33,7 +39,16 @@ def main():
         if hasattr(player, command):
             eval("player." + command + "()")
 
-class TurnTable(Player):
+class Main(Player):
+    """Create and control music player in background.
+
+    This is a process control class. It abstracts the running of an
+    application on the backend and presents information and controls
+    in the form of generic lists. Frontends can interface with this
+    class by instantiating "Main" as an object, presenting the
+    information and controls, and calling the command methods.
+    """
+
     def __init__(self, dirname='~/Music'):
         self.albums = None
         self.cmdlist = ("new", "stop", "play", "next", "info")
@@ -42,6 +57,7 @@ class TurnTable(Player):
         self.new()
 
     def info(self):
+        """Find and put track metadata into the information list."""
         if hasattr(self, "metadata") and self.metadata != None:
             self.inflist = (
                     self.metadata['Album'],
@@ -52,6 +68,7 @@ class TurnTable(Player):
             self.inflist = (self.filename.split("-"))
 
     def new(self):
+        """Randomly choose a new album to play."""
         if hasattr(self, "_proc"):  # hacky way to make mplayer not crash
             self.stop()
         if self.albums == None:
@@ -68,12 +85,13 @@ class TurnTable(Player):
             self.info()
 
     def next(self):
+        """Skip to the next track in the album."""
         self.pt_step(1)
-        time.sleep(1)
         if hasattr(self, "_proc"):  # hacky way to make mplayer not crash
             self.info()
 
     def play(self):
+        """Pause the music, or play if already paused."""
         self.pause()
 
 
