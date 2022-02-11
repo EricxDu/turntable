@@ -28,7 +28,7 @@ def main():
     else: player = TurnTable()
     done = False
     while not done and player.albums != None:
-        print('commands: alb art name play prog skip sort time vol quit')
+        print('commands: alb art name play prog sort step time vol quit')
         command = input('Enter command: ')
         if command == 'alb': print(player.get_alb())
         elif command == 'art': print(player.get_art())
@@ -37,15 +37,25 @@ def main():
         elif command == 'prog': print(player.get_prog())
         elif command == 'skip': player.skip()
         elif command == 'sort': print(player.get_sort())
+        elif command == 'step': player.step()
         elif command == 'time': print(player.get_time())
         elif command == 'vol': print(player.get_vol())
-        elif command == 'quit':
-            done = True
+        elif command == 'quit': done = True
 
 
 class TurnTable():
+    """Start a background music player and provide basic controls.
+
+    """
+
     def __init__(self, dirname='~/Music'):
-        """ Initialize the player and album collection """
+        """Initialize the player and album collection.
+
+        Assume music is in user's home directory in the "Music" folder
+        unless specified. "~" symbol expands to home directory in a
+        cross-platform way. To avoid ambiguity albums must be listed in
+        "m3u" playlist files.
+        """
         # generate the list of albums
         dirname = os.path.expanduser(dirname)
         print('turntable: searching ' + dirname)
@@ -70,7 +80,8 @@ class TurnTable():
             playlist = random.choice(self.albums)
             print('turntable: playing ' + playlist)
             if self.p != None: del self.p
-            self.p = Player('-nolirc -joystick -loop 0 -playlist ' + playlist)
+            self.p = Player(
+                    '-vo null -nolirc -joystick -loop 0 -playlist ' + playlist)
         else:
             print('turntable: no album collection found')
             print('turntable: try putting some .m3u playlist files')
@@ -148,6 +159,9 @@ class TurnTable():
     def skip(self):
         """Skip to end of current track."""
         self.p.time_pos = self.p.length or 0
+
+    def step(self):
+        self.p.pt_step(1)
 
 
 if __name__ == '__main__':
