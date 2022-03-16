@@ -28,19 +28,14 @@ def main():
     else: player = TurnTable()
     done = False
     while not done and player.albums != None:
-        print('commands: alb art name play prog sort step time vol quit')
-        command = input('Enter command: ')
-        if command == 'alb': print(player.get_alb())
-        elif command == 'art': print(player.get_art())
-        elif command == 'name': print(player.get_name())
-        elif command == 'play': player.play()
-        elif command == 'prog': print(player.get_prog())
-        elif command == 'skip': player.skip()
-        elif command == 'sort': print(player.get_sort())
-        elif command == 'step': player.step()
-        elif command == 'time': print(player.get_time())
-        elif command == 'vol': print(player.get_vol())
-        elif command == 'quit': done = True
+        print("[INFO]")
+        print(player.get_material())
+        print("COMMANDS:", player.get_controls())
+        command = input("Enter command: ")
+        if hasattr(player, command):
+            eval("player." + command + "()")
+        elif command == "quit":
+            done = True
 
 
 class TurnTable():
@@ -73,6 +68,16 @@ class TurnTable():
                   + dirname)
             self.albums = None
         self.p = Player()
+
+    def get_controls(self):
+        return ["play", "step"]
+
+    def get_material(self):
+        infolist = self.get_substrings()
+        return "\n".join(list(infolist.values()))
+
+    def info(self):
+        self.get_material()
 
     def play(self):
         if self.albums != None:
